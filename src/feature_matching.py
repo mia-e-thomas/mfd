@@ -17,16 +17,19 @@ class FeatureMatching:
 
         # Step 1: Detect keypoints
         keypoints_a = self._detector_alg.detect(image=image_a)
-        keypoints_b = keypoints_a
+        keypoints_b = self._detector_alg.detect(image=image_b) # MODIFIED*****
+
+        # keypoints_b = keypoints_a
 
         # Step 2: Compute descriptors for each keypoint
         _, descriptors_a = self._descriptor_alg.compute(image_a, keypoints_a)
         _, descriptors_b = self._descriptor_alg.compute(image_b, keypoints_b)
 
         # Step 3: Compute the matches
+        ''' Method 1: Original Code (knn and ratio test)'''
+        '''
         matcher_algorithm = cv2.BFMatcher_create(
             normType=cv2.NORM_L2, 
-            # crossCheck=True,
             )
 
         matches = matcher_algorithm.knnMatch(
@@ -37,6 +40,22 @@ class FeatureMatching:
         # Matching strategy: Nearest Neighbour Distance Ratio (NNDR),
         # defined in the paper [1]. This ratio select the best matches.
         best_matches = self.nearest_neighbor_test(matches, self._nndr_ratio)
+        '''
+        ''' End Method 1 '''
+    
+        ''' Method 2: Modify Code to not use knn & instead use crosscheck '''
+        # Use Brute force matcher still, BUT use crossCheck to get mutual best match"
+        # Remove the knn match & use plain matcher instead
+        matcher_algorithm = cv2.BFMatcher(
+            normType=cv2.NORM_L2, # same
+            crossCheck=True, # MODIFIED = get "mutual" best match
+        )
+
+        best_matches = matcher_algorithm.match(
+            queryDescriptors=descriptors_a,
+            trainDescriptors=descriptors_b,
+        )
+        ''' End Method 2 '''
 
         # Plot matching result
         image_matches = cv2.drawMatches(
