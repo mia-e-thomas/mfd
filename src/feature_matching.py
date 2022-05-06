@@ -24,7 +24,10 @@ class FeatureMatching:
         _, descriptors_b = self._descriptor_alg.compute(image_b, keypoints_b)
 
         # Step 3: Compute the matches
-        matcher_algorithm = cv2.BFMatcher_create(normType=cv2.NORM_L2)
+        matcher_algorithm = cv2.BFMatcher_create(
+            normType=cv2.NORM_L2, 
+            # crossCheck=True,
+            )
 
         matches = matcher_algorithm.knnMatch(
             queryDescriptors=descriptors_a,
@@ -43,14 +46,15 @@ class FeatureMatching:
             keypoints2=keypoints_b,
             matches1to2=best_matches,
             outImg=0,
-            matchColor=(0, 255, 0),
-            flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+            # matchColor=(0, 255, 0),
+            # flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
+            )
 
         # Compute precision
         precision = self.compute_precision(
             keypoints_a, keypoints_b, best_matches)
 
-        return (image_matches, len(best_matches), precision)
+        return (image_matches, len(best_matches), precision, keypoints_a, keypoints_b, best_matches)
 
     @staticmethod
     def nearest_neighbor_test(matches, nndr_ratio):
